@@ -4,7 +4,7 @@ Collection of often used pipelines based on snakemake.
 
 ## Evaluating Assemblies
 
-Overview of the REAPR algorithm
+## Overview of the REAPR algorithm
 
 Two metrics to pinpoint errors:
 
