@@ -1,0 +1,5 @@
+workdir: "."
+samples: samples.tsv
+fq1: fastq/reads_shortinsert_1.fastq
+fq2: fastq/reads_shortinsert_2.fastq
+threads: 1
