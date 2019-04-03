@@ -1,0 +1,3 @@
+KeyError in line 124 of /array/rodtheo/programas/snakemake_pipelines/evaluate_assemblies/Snakefile_evaluate:
+'lineage'
+  File "/array/rodtheo/programas/snakemake_pipelines/evaluate_assemblies/Snakefile_evaluate", line 124, in <module>

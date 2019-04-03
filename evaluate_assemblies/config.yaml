@@ -2,4 +2,6 @@ workdir: "."
 samples: samples.tsv
 fq1: fastq/reads_shortinsert_1.fastq
 fq2: fastq/reads_shortinsert_2.fastq
-threads: 1
+threads: 8
+lineage: dataset/example/
+BUSCO_PATH: "/array/rodtheo/programas/miniconda2/bin/python /array/rodtheo/programas/busco-v3.1.0/scripts" 

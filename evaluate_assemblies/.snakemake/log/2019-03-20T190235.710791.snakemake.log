@@ -1,0 +1,37 @@
+Building DAG of jobs...
+Using shell: /bin/bash
+Provided cores: 1
+Rules claiming more threads will be scaled down.
+Job counts:
+	count	jobs
+	1	all
+	2	bowtie2
+	2	build_index_bowtie2
+	2	busco
+	2	check_header_fasta
+	2	evaluate_assembly_ALE
+	2	evaluate_assembly_REAPR
+	2	samtools_index
+	2	samtools_sort
+	17
+
+[Wed Mar 20 19:02:36 2019]
+rule busco:
+    input: dataset/example/, dataset/assembly_2.fa
+    output: evaluate_assembly/Sample2/busco/BUSCO_Sample2.finished
+    jobid: 5
+    wildcards: sample=Sample2
+
+[Wed Mar 20 19:02:36 2019]
+Error in rule busco:
+    jobid: 5
+    output: evaluate_assembly/Sample2/busco/BUSCO_Sample2.finished
+
+RuleException:
+CalledProcessError in line 129 of /array/rodtheo/programas/snakemake_pipelines/evaluate_assemblies/Snakefile_evaluate:
+Command 'set -euo pipefail;  run_BUSCO.py -i dataset/assembly_2.fa -o evaluate_assembly/Sample2/busco/short_summary_Sample2 -l dataset/example/ --cpu 1 && touch evaluate_assembly/Sample2/busco/BUSCO_Sample2.finished' returned non-zero exit status 1
+  File "/array/rodtheo/programas/snakemake_pipelines/evaluate_assemblies/Snakefile_evaluate", line 129, in __rule_busco
+  File "/array/rodtheo/programas/miniconda2/envs/bioPy3/lib/python3.5/concurrent/futures/thread.py", line 55, in run
+Shutting down, this might take some time.
+Exiting because a job execution failed. Look above for error message
+Complete log: /array/rodtheo/programas/snakemake_pipelines/evaluate_assemblies/.snakemake/log/2019-03-20T190235.710791.snakemake.log

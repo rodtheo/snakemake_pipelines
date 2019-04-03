@@ -1,0 +1,9 @@
+all
+check_header_fasta
+build_index_bowtie2
+bowtie2
+samtools_sort
+samtools_index
+evaluate_assembly_ALE
+evaluate_assembly_REAPR
+busco

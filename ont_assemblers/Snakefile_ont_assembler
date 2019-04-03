@@ -1,0 +1,59 @@
+import pandas as pd
+import shlex
+import subprocess
+from pathlib import Path
+
+configfile: "config.yaml"
+
+samples = pd.read_table(config["samples"]).set_index("sample", drop=False)
+
+
+def get_sequence_file(wildcards):
+	return samples.loc[wildcards.sample, "raw_fastq"]
+
+def get_genome_prefix(wildcards):
+	gen = samples.loc[wildcards.sample, "raw_fastq"]
+	return ''.join(gen.split('.')[:-1])
+
+rule all:
+	input:	
+		expand('ont_assemblers/wtdbg2/{sample}.ctf.ga', sample=samples['sample']),
+		expand('ont_assemblers/flye/{sample}.finished', sample=samples['sample'])
+
+rule wtdbg2:
+	input:
+		get_sequence_file
+	output: 'ont_assemblers/wtdbg2/{sample}.finished'
+	params:
+		genome_size=config['genome_size'],
+		genome_prefix=get_genome_prefix
+	threads:
+		config['threads']
+	benchmark: 'ont_assemblers/benchmark/{sample}_wtdbg2.log'
+	shell:
+		"wtdbg2 -x ont -g {params.genome_size} -t {threads} -i {input} -o {sample} && touch {output}"
+	
+rule wtdbg2_consensus:
+	input:
+		'ont_assemblers/wtdbg2/{sample}.finished'
+	output:
+		'ont_assemblers/wtdbg2/{sample}.ctg.fa'
+	threads:
+		config['threads']
+	benchmark: 'ont_assemblers/benchmark/{sample}_wtdbg2_consensus.log'
+	shell:
+		"wtpoa-cns -t {threads} -i ont_assemblers/wtdbg2/{wildcards.sample}.ctg.lay.gz -fo {output}"
+
+rule flye_assembler:
+	input:
+		get_sequence_file
+	output:
+		'ont_assemblers/flye/{sample}.finished'
+	params:
+		genome_size=config['genome_size']
+	threads:
+		config['threads']
+	benchmark: 'ont_assemblers/benchmark/{sample}_flye.log'
+	shell:
+		"flye --nano-raw {input} --out-dir ont_assemblers/flye --genome-size {params.genome_size} --threads {threads} && touch {output}"
+
