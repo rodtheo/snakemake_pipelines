@@ -2,12 +2,12 @@ import pandas as pd
 import shlex
 import subprocess
 from pathlib import Path
+from Bio import SeqIO
+import re
 
 configfile: "config.yaml"
 
 samples = pd.read_table(config["samples"]).set_index("sample", drop=False)
-
-BUSCO_PATH = config['BUSCO_PATH']
 
 def get_genome(wildcards):
 	return samples.loc[wildcards.sample, "assembly"]
@@ -27,8 +27,8 @@ rule check_header_fasta:
 		genome=get_genome
 	output:
 		'evaluate_assembly/{sample}/FACHECK_ok.txt'
-		
 	run:
+		
 		facheck = subprocess.call(["reapr", "facheck", "{}".format(input.genome)],  stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
 		if facheck == 1:
 			raise ValueError('\033[94m The header of assembly {} is not compatible with REAPR.\nPlease, execute reapr facheck and modify the file assemblies.tsv to point to assembly with corrected header! \033[0m \n\n\n To this y using command line: \033[96m reapr facheck <in.fa> [out_prefix] \033[0m'.format(input.genome))
@@ -44,6 +44,8 @@ rule build_index_bowtie2:
 		'evaluate_assembly/{sample}/{sample}.index_built'
 	params:
 		prefix=get_genome_prefix
+	conda:
+		"envs/myenv.yaml"
 	shell:
 		"bowtie2-build {input.fasta} {params.prefix} && touch {output}"
 
@@ -59,6 +61,8 @@ rule bowtie2:
 		index = get_genome_prefix,
 		extra = "--end-to-end --very-sensitive"
 	threads: config["threads"]
+	conda:
+		"envs/myenv.yaml"
 	wrapper:
 		"0.31.1/bio/bowtie2/align"
 
@@ -70,6 +74,8 @@ rule samtools_sort:
 	params:
 		"-m 4G"
 	threads: config["threads"]
+	conda:
+		"envs/myenv.yaml"
 	wrapper:
 		"0.31.1/bio/samtools/sort"
 
@@ -78,6 +84,8 @@ rule samtools_index:
 		'evaluate_assembly/{sample}/{sample}.sorted.bam'
 	output:
 		'evaluate_assembly/{sample}/{sample}.bam.bai'
+	conda:
+		"envs/myenv.yaml"
 	wrapper:
 		"0.31.1/bio/samtools/index"
 
@@ -90,7 +98,7 @@ rule evaluate_assembly_ALE:
                 'evaluate_assembly/benchmark/{sample}_ALE.log'
         output:
                 'evaluate_assembly/{sample}/ALEScore_{sample}.finished'
-        shell:'ALE --nout --metagenome {input.r} {input.genome} evaluate_assembly/{wildcards.sample}/ALEoutput.txt && touch {output}'
+        shell:"ALE --nout --metagenome {input.r} {input.genome} evaluate_assembly/{wildcards.sample}/ALEoutput.txt && touch {output}"
 
 rule evaluate_assembly_REAPR:
 	input:
@@ -104,7 +112,9 @@ rule evaluate_assembly_REAPR:
 	params:
 		prefix=get_genome_prefix
 	singularity:
-		"library://rodtheo/genomics/reapr-v1.0.18"
+		"docker://rodtheo/genomics/reapr-v1.0.18"
+	conda:
+		"envs/myenv.yaml"
 	shell:
 		"reapr pipeline {input.genome} {input.r} evaluate_assembly/{wildcards.sample}/reapr_results && touch {output}"
 #		genome_fachecked = '{}_fachecked'.format(params.prefix)
@@ -129,4 +139,6 @@ rule busco:
 	benchmark: "evaluate_assembly/benchmark/{sample}_BUSCO.log"
         params: species=config["species_augustus"]
         threads: config["threads"]
-        shell: '{BUSCO_PATH}/run_BUSCO.py -i {input.genome} -o {wildcards.sample} -l {input.lineage} --cpu 10 --species {params.species} --mode genome && mv run_{wildcards.sample} evaluate_assembly/{wildcards.sample}/ && touch {output}'
+	conda: "envs/myenv.yaml"
+        shell: 'run_BUSCO.py -i {input.genome} -o {wildcards.sample} -l {input.lineage} --cpu 10 --species {params.species} --mode genome && mv run_{wildcards.sample} evaluate_assembly/{wildcards.sample}/ && touch {output}'
+

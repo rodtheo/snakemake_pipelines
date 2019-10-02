@@ -1,13 +1,14 @@
 # Snakemake Pipelines
 
-Collection of often used pipelines based on snakemake.
+Collection of Bioinformatics pipelines based on [snakemake](https://snakemake.readthedocs.io/en/stable/) workflow management system.
 
 ## Implemented pipelines
 
 Up to now we have the following specific pipelines:
 
-- [Evaluation Assemblies Pipeline](https://github.com/rodtheo/snakemake_pipelines/tree/master/evaluate_assemblies): the task is to execute tools to evaluate some metrics given _de novo_ assemblies;
-- [ONT Assemblers](https://github.com/rodtheo/snakemake_pipelines/tree/master/ont_assemblers): different from expected, the aim is to execute most-recent assemblers Flye and wtdbg2;
+- [General Evaluation Assemblies Pipeline](https://github.com/rodtheo/snakemake_pipelines/tree/master/evaluate_assemblies): the aim is to execute a collection of tools to generate metrics to evaluate _de novo_ assemblies;
+- [ONT Assemblers](https://github.com/rodtheo/snakemake_pipelines/tree/master/ont_assemblers): the aim is to execute most-recent assemblers Flye and wtdbg2 given as input a Oxford Nanopore Sequence dataset;
+- [Plant Evaluation Assemblies Pipeline]
 
 ## Requirements
 
@@ -26,11 +27,13 @@ Make sure that all these tools are available in `$PATH`. The links were checked 
 
 ## Quick usage
 
-In each sub-folder that contains an specific pipeline (e.g. evaluation or ont assembler) we have 3 very important files: `config.yaml`, `samples.tsv`. These control, respectively, the configuration parameters that will be used during pipeline execution and the input files that will start your analysis. If you change the name of these files, please, modify the corresponding Snakefile variable.
+In each sub-folder that contains an specific pipeline (e.g. evaluation or ont assembler) we have 3 very important files: `config.yaml`, `samples.tsv` and `Snakefile_<pipeline name>`. These control, respectively, the configuration parameters that will be used during pipeline execution, the input files that will start your analysis and, the third file, defines the pipeline using the snakemake syntax.
 
-After this you should run snakemake inside each specific pipeline folder.
+Therefore, to execute the pipeline in your data you should only modify the files `config.yaml` and `samples.tsv` filling in the required variables.
 
-Example of running evaluate assembly pipeline:
+After this you should be able to run the pipelines with a simple command.
+
+For example, we can run the general evaluate assembly pipeline with 10 cores using the following command inside the folder `evaluate_assemblies`:
 
 ```{bash}
 snakemake -s Snakefile_evaluate --cores 10

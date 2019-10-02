@@ -1,0 +1,11 @@
+name: evaluate_assemblies_env
+channels:
+        - bioconda
+dependencies:
+        - ale
+        - reaper
+        - samtools
+        - bowtie2
+        - snakemake
+        - busco
+        - biopython
