@@ -1,0 +1,3 @@
+evaluate_assemblies/evaluate_assembly/
+/evaluate_assemblies/.snakemake/**
+evaluate_assemblies/dataset/*.bt2
