@@ -12,12 +12,6 @@ thead {
 
 <table class="tg">
     <thead>
-      <tr>
-    <th class="tg-0pky"></th>
-    <th class="tg-0pky" colspan="3">Assembly Statistics</th>
-    <th class="tg-0pky" colspan="8">BUSCO scores</th>
-    <th class="tg-0pky"></th>
-    </tr>
   <tr>
     <th class="tg-lboi" rowspan="2">Assembly</th>
     <th class="tg-lboi" rowspan="2">Length</th>
@@ -28,7 +22,8 @@ thead {
     <th class="tg-lboi" colspan="2">Duplicated genes</th>
     <th class="tg-0pky" colspan="2">Fragmented genes</th>
     <th class="tg-0pky" colspan="2">Missing genes</th>
-    <th class="tg-0pky" rowspan="2">REAPR score</th>
+    <th class="tg-0pky" rowspan="2">ALE score (log)</th>
+    <th class="tg-0pky" rowspan="2">REAPR errors</th>
   </tr>
   <tr>
     <th class="tg-lboi">Number</th>
@@ -44,20 +39,20 @@ thead {
   {% for item in items %}
   <tr>
     <td class="tg-lboi">{{item.name}}</td>
-    <td class="tg-lboi">{{item.genomesize}}</td>
-    <td class="tg-lboi">{{item.contigs}}</td>
-    <td class="tg-lboi">{{item.largest}}</td>
-    <td class="tg-lboi">{{item.n50}}</td>
-    <td class="tg-lboi">{{item.ncomplete}}</td>
-    <td class="tg-lboi">{{item.pctcomplete}}%</td>
-    <td class="tg-lboi">{{item.nduplicated}}</td>
-    <td class="tg-lboi">{{item.pctduplicated}}%</td>
-    <td class="tg-lboi">{{item.nfragmented}}</td>
-    <td class="tg-lboi">{{item.pctfragmented}}%</td>
-    <td class="tg-lboi">{{item.nmissing}}</td>
-    <td class="tg-lboi">{{item.pctmissing}}%</td>
-    <td class="tg-lboi">{{item.lai}}</td>
+    <td class="{{item.genomesize_class}}">{{item.genomesize}}</td>
+    <td class="{{item.contigs_class}}">{{item.contigs}}</td>
+    <td class="{{item.largest_class}}">{{item.largest}}</td>
+    <td class="{{item.n50_class}}">{{item.n50}}</td>
+    <td class="{{item.ncomplete_class}}">{{item.ncomplete}}</td>
+    <td class="{{item.pctcomplete_class}}">{{item.pctcomplete}}%</td>
+    <td class="{{item.nduplicated_class}}">{{item.nduplicated}}</td>
+    <td class="{{item.pctduplicated_class}}">{{item.pctduplicated}}%</td>
+    <td class="{{item.nfragmented_class}}">{{item.nfragmented}}</td>
+    <td class="{{item.pctfragmented_class}}">{{item.pctfragmented}}%</td>
+    <td class="{{item.nmissing_class}}">{{item.nmissing}}</td>
+    <td class="{{item.pctmissing_class}}">{{item.pctmissing}}%</td>
+    <td class="{{item.ale_class}}">{{item.ale}}</td>
+    <td class="{{item.reapr_class}}">{{item.reapr}}</td>
   </tr>
   {% endfor %}
 </table>
-

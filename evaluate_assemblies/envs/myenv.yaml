@@ -9,3 +9,6 @@ dependencies:
         - snakemake
         - busco
         - biopython
+        - quast
+        - jinja2
+        - openpyxl

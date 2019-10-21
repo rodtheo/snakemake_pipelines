@@ -18,11 +18,11 @@ To do this, we enter the folder corresponding to the pipeline (`cd evaluate_asse
 conda env create -f envs/myenv.yaml
 ```
 
-This will create a conda environment called `evaluate_assemblies`. We can check that the environement was created through `conda info --envs`.
+This will create a conda environment called `evaluate_assemblies_env`. We can check that the environement was created through `conda info --envs`.
 
 After this, we go to the folder `build_docker_img` and type `docker build -t rodtheo/genomics:eval_assem_ale_reapr .`. This will create an image with the remainer tools required for the execution of pipeline that could not be installed by conda. Again, we can check if the image was created listing them with `docker images`.
 
-Now, we enter our environment using `conda activate evaluate_assemblies` and them we execute the test dataset with `snakemake -s Snakefile_evaluate --cores <number of cores>` where `<number of cores>` must be replaced by a number informing the quantity of cores required by the user.
+Now, we enter our environment using `conda activate evaluate_assemblies_env` and them we execute the test dataset with `snakemake -s Snakefile_evaluate --cores <number of cores>` where `<number of cores>` must be replaced by a number informing the quantity of cores required by the user.
 
 ## Output files
 
