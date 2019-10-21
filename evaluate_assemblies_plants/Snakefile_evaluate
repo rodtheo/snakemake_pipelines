@@ -1,0 +1,282 @@
+import pandas as pd
+import shlex
+import subprocess
+from pathlib import Path
+import os
+import re
+from os import path
+import jinja2
+
+configfile: "config_evaluate.yaml"
+
+samples = pd.read_table(config["samples"]).set_index("sample", drop=False)
+
+BUSCO_PATH = config['BUSCO_PATH']
+LTR_BIN_PATH = config['LTR_RETRIEVE_PATH']
+NCBI_NT_DB = config['NCBI_NT_DB']
+
+def get_genome(wildcards):
+	return samples.loc[wildcards.sample, "assembly"]
+
+def get_genome_prefix(wildcards):
+	gen = samples.loc[wildcards.sample, "assembly"]
+	return ''.join(gen.split('.')[:-1])
+
+def get_all_genomes(wildcards):
+	return ' '.join(samples["assembly"].values)
+
+def get_all_names(wildcards):
+	return ','.join(samples["sample"].values)
+
+def parse_busco(out_short_summary):
+    dict_busco = {}
+    with open(out_short_summary, 'r') as infbusco:
+        for idxline, line in enumerate(infbusco.readlines()):
+            # line = line.strip("\n")
+            if line.startswith("#"):
+                match_db_obj = re.match(r'.+\(.+number of species\:\s(\d+),\snumber of BUSCOs\:\s(\d+)\)', line)
+                if match_db_obj:
+                    print(match_db_obj.group(1), match_db_obj.group(2))
+            else:
+                match_summary_obj = re.match(r'\s+C\:(\d+.\d+)\%\[S\:(\d+.\d)\%,D\:(\d+.\d+)\%\],F\:(\d+.\d+)\%,M:(\d+.\d+)%,n:\d+', line)
+                if match_summary_obj:
+                    dict_busco['pctcomplete'] = match_summary_obj.group(1)
+                    dict_busco['pctsingle'] = match_summary_obj.group(2)
+                    dict_busco['pctduplicated'] = match_summary_obj.group(3)
+                    dict_busco['pctfragmented'] = match_summary_obj.group(4)
+                    dict_busco['pctmissing'] = match_summary_obj.group(5)
+                    print(idxline)
+                elif idxline == 9:
+                    match_n = re.match(r'\s+(\d+)\s+.+', line)
+                    n = match_n.group(1)
+                    dict_busco['ncomplete'] = n
+                elif idxline == 10:
+                    match_n = re.match(r'\s+(\d+)\s+.+', line)
+                    n = match_n.group(1)
+                    dict_busco['nsingle'] = n
+                elif idxline == 11:
+                    match_n = re.match(r'\s+(\d+)\s+.+', line)
+                    n = match_n.group(1)
+                    dict_busco['nduplicated'] = n
+                elif idxline == 12:
+                    match_n = re.match(r'\s+(\d+)\s+.+', line)
+                    n = match_n.group(1)
+                    dict_busco['nfragmented'] = n
+                elif idxline == 13:
+                    match_n = re.match(r'\s+(\d+)\s+.+', line)
+                    n = match_n.group(1)
+                    dict_busco['nmissing'] = n
+    return(dict_busco)
+
+
+
+rule all:
+	input:
+		expand('evaluate_assembly/{sample}/contamination_check/{sample}.sorted.bam', sample=samples['sample']),
+		#expand('evaluate_assembly/{sample}/contamination_check/blob_{sample}.OK', sample=samples['sample']),
+		expand('evaluate_assembly/{sample}/LAI/LAI_{sample}.OK', sample=samples['sample']),
+		#expand('evaluate_assembly/{sample}/busco/BUSCO_{sample}.finished', sample=samples['sample']),
+		expand('evaluate_assembly/{sample}/LAI/LAI_moved_{sample}.OK', sample=samples['sample']),
+		'evaluate_assembly/quast_results/QUAST.OK',
+		'evaluate_assembly/results.html'
+
+rule generate_hit_file_for_blobtools:
+	input:
+		genome=get_genome
+	params:
+		db_file=config['NCBI_NT_DB']
+	output:
+		'evaluate_assembly/{sample}/contamination_check/assembly.vs.nt.mts1.hsp1.1e25.megablast.out'
+	threads: config["threads"]
+	shell:
+		"blastn -task megablast -query {input.genome} -db {params.db_file} -outfmt '6 qseqid staxids bitscore std' -max_target_seqs 1 -max_hsps 1 -num_threads {threads} -evalue 1e-25 -out {output}"
+		
+
+rule mapping_raw_with_minimap2:
+	input:
+		genome=get_genome,
+		sample_fastq=config['fq']
+	output:
+		temp('evaluate_assembly/{sample}/contamination_check/{sample}.sam')
+	threads: config["threads"]
+	shell:
+		"minimap2 -t {threads} -x map-pb -a --secondary=no {input.genome} {input.sample_fastq} > {output}"
+
+rule samtools_view:
+	input:
+		'evaluate_assembly/{sample}/contamination_check/{sample}.sam'
+	output:
+		temp('evaluate_assembly/{sample}/contamination_check/{sample}.bam')
+	threads: config["threads"]
+	params:
+		"-b -S -@ 12"
+	wrapper:
+		"0.35.2/bio/samtools/view"
+	
+
+rule samtools_sort:
+        input:
+                'evaluate_assembly/{sample}/contamination_check/{sample}.bam'
+        output:
+                'evaluate_assembly/{sample}/contamination_check/{sample}.sorted.bam'
+        params:
+                "-m 4G"
+        threads: config["threads"]
+        wrapper:
+                "0.35.2/bio/samtools/sort"
+
+rule samtools_index:
+        input:
+                'evaluate_assembly/{sample}/contamination_check/{sample}.sorted.bam'
+        output:
+                'evaluate_assembly/{sample}/contamination_check/{sample}.sorted.bam.bai'
+        wrapper:
+                "0.35.2/bio/samtools/index"
+
+rule contamination_check_using_blobtools:
+	input:
+		genome=get_genome,
+		hit_file='evaluate_assembly/{sample}/contamination_check/assembly.vs.nt.mts1.hsp1.1e25.megablast.out',
+		bam_file='evaluate_assembly/{sample}/contamination_check/{sample}.sorted.bam',
+		bam_file_idx='evaluate_assembly/{sample}/contamination_check/{sample}.sorted.bam.bai'
+	output:
+		'evaluate_assembly/{sample}/contamination_check/blob_{sample}.OK'
+	run:
+		shell("blobtools create -i {input.genome} -b {input.bam_file} -t {input.hit_file} -o evaluate_assembly/{wildcards.sample}/contamination_check/blob_{wildcards.sample}")
+		shell("blobtools view -i evaluate_assembly/{wildcards.sample}/contamination_check/blob_{wildcards.sample}.blobDB.json -o evaluate_assembly/{wildcards.sample}/contamination_check/")
+		shell("blobtools plot -i evaluate_assembly/{wildcards.sample}/contamination_check/blob_{wildcards.sample}.blobDB.json -o evaluate_assembly/{wildcards.sample}/contamination_check/")
+		shell("touch {output}")
+
+rule ltr_harvest:
+	input:
+		genome=get_genome
+	output:
+		TGCA='evaluate_assembly/{sample}/LAI/{sample}.harvest.scn',
+		nonTGCA='evaluate_assembly/{sample}/LAI/{sample}.harvest.nonTGCA.scn'
+	log: 'evaluate_assembly/logs/ltr_harvest_{sample}.log'
+	run:
+		folder = "evaluate_assembly/{}/LAI/".format(wildcards.sample)
+		print(folder)
+		folder_second = "evaluate_assembly/{}/LAI/harvest/".format(wildcards.sample)
+		if not os.path.exists(folder):
+			os.mkdir(folder)
+		if not os.path.exists(folder_second):
+			os.mkdir(folder_second)
+		shell("gt suffixerator -db {input.genome} -indexname evaluate_assembly/{wildcards.sample}/LAI/harvest/{wildcards.sample} -tis -suf -lcp -des -ssp -sds -dna && gt ltrharvest -index evaluate_assembly/{wildcards.sample}/LAI/harvest/{wildcards.sample} -similar 90 -vic 10 -seed 20 -seqids yes -minlenltr 100 -maxlenltr 7000 -mintsd 4 -maxtsd 6 -motif TGCA -motifmis 1 > {output.TGCA} && gt ltrharvest -index evaluate_assembly/{wildcards.sample}/LAI/harvest/{wildcards.sample} -similar 90 -vic 10 -seed 20 -seqids yes -minlenltr 100 -maxlenltr 7000 -mintsd 4 -maxtsd 6 > {output.nonTGCA}")
+#		shell("mkdir evaluate_assembly/{sample}/LAI/harvest/")
+#		shell("gt suffixerator -db {input.genome} -indexname evaluate_assembly/{sample}/LAI/harvest/{wildcards.sample} -tis -suf -lcp -des -ssp -sds -dna")
+#		shell("gt ltrharvest -index evaluate_assembly/{sample}/LAI/harvest/{wildcards.sample} -similar 90 -vic 10 -seed 20 -seqids yes -minlenltr 100 -maxlenltr 7000 -mintsd 4 -maxtsd 6 -motif TGCA -motifmis 1 > {output.TGCA}")
+#		shell("gt ltrharvest -index evaluate_assembly/{sample}/LAI/harvest/{wildcards.sample} -similar 90 -vic 10 -seed 20 -seqids yes -minlenltr 100 -maxlenltr 7000 -mintsd 4 -maxtsd 6 > {output.nonTGCA}")
+
+rule ltr_finder:
+	input:
+		genome=get_genome
+	output:
+		'evaluate_assembly/{sample}/LAI/{sample}.finder.scn'
+	shell:
+		"ltr_finder -D 15000 -d 1000 -L 7000 -l 100 -p 20 -C -M 0.9 {input} > {output}"
+
+# the ltr_retriever binary must be run from the installed location. Otherwise, it may not work.
+rule ltr_retriever:
+	input:
+		genome=get_genome,
+		harvest_out_TGCA='evaluate_assembly/{sample}/LAI/{sample}.harvest.scn',
+		harvest_out_nonTGCA='evaluate_assembly/{sample}/LAI/{sample}.harvest.nonTGCA.scn',
+		ltrfinder_out='evaluate_assembly/{sample}/LAI/{sample}.finder.scn'
+	output: 'evaluate_assembly/{sample}/LAI/LAI_{sample}.OK'
+	log: 'evaluate_assembly/logs/{sample}_ltr_retriever.log'
+	benchmark: 'evaluate_assembly/benchmark/{sample}_ltr_retriever.txt'
+	threads: config["threads"] 
+	shell:
+		"cp {input.genome} {input.genome}_bkp.fa && {LTR_BIN_PATH}/LTR_retriever -genome {input.genome}_bkp.fa -inharvest {input.harvest_out_TGCA} -infinder {input.ltrfinder_out} -nonTGCA {input.harvest_out_nonTGCA} && touch {output}"
+
+rule moving_ltr_results:
+	input:
+		'evaluate_assembly/{sample}/LAI/LAI_{sample}.OK',
+		genome=get_genome
+	output:
+		'evaluate_assembly/{sample}/LAI/LAI_moved_{sample}.OK'
+	run:
+		folder = "evaluate_assembly/{}/LAI/ltr_retriever".format(wildcards.sample)
+                if not os.path.exists(folder):
+                        os.mkdir(folder)
+		print("Moving LTR RETRIEVER results into folder {}".format(folder))
+		shell("mv {input.genome}_bkp.fa.mod* {folder} && touch {output}")
+rule busco:
+	input:
+		genome = get_genome,
+		lineage = config["lineage"]
+	output:
+		'evaluate_assembly/{sample}/busco/BUSCO_{sample}.finished'
+	benchmark: "evaluate_assembly/benchmark/{sample}_BUSCO.log"
+        params: species=config["species_augustus"]
+        shell: '{BUSCO_PATH}/run_BUSCO.py -i {input.genome} -o {wildcards.sample} -l {input.lineage} --cpu 1 --species {params.species} --mode genome && mv run_{wildcards.sample} evaluate_assembly/{wildcards.sample}/ && touch {output}'
+
+rule quast:
+	params:
+		genomes = get_all_genomes,
+		names = get_all_names
+	threads: config['threads']
+	output: "evaluate_assembly/quast_results/QUAST.OK"
+	shell:
+		'quast.py --labels "{params.names}" -e --threads {threads} -o evaluate_assembly/quast_results/ {params.genomes} && touch {output}'
+
+rule generate_table_results:
+	input: genomes=expand('evaluate_assembly/{sample}', sample=samples['sample']),requirements=expand('evaluate_assembly/{sample}/LAI/LAI_{sample}.OK',sample=samples['sample']),quast_res='evaluate_assembly/quast_results/QUAST.OK'
+	output: "evaluate_assembly/results.html"
+	run:			
+		items = []
+		for pseudo_samp in input.genomes:
+			samp = pseudo_samp.split("/")[-1]
+			dict_sample = {}
+			dict_sample['name'] = samp
+			busco_summary_file = "{}/run_{}/short_summary_{}.txt".format(pseudo_samp, samp, samp)
+			if path.exists(busco_summary_file):
+				dict_samp = parse_busco(busco_summary_file)
+			else:
+				dict_samp['ncomplete'] = 'X'
+				dict_samp['pctcomplete'] = 'X'
+				dict_samp['nduplicated'] = 'X'
+				dict_samp['pctduplicated'] = 'X'
+				dict_samp['nfragmented'] = 'X'
+				dict_samp['pctfragmented'] = 'X'
+			genome_path = samples.loc[samp, "assembly"]
+			genome_name  = genome_path.split('/')[-1]
+			lai_file = "{}/LAI/ltr_retriever/{}_bkp.fa.mod.out.LAI".format(pseudo_samp, genome_name)
+			print(lai_file)
+			if path.exists(lai_file):
+				with open(lai_file, 'r') as inlai:
+					for line in inlai.readlines():
+						if line.startswith("whole_genome"):
+							line_list = line.split("\t")
+							dict_sample['lai'] = line_list[-1].strip('\n')
+			print(dict_sample)
+			# parsing quast results
+			df_quast = pd.read_table('evaluate_assembly/quast_results/report.tsv', sep='\t')
+			array_sample = df_quast[samp].values
+			dict_sample['genomesize'] = '{:,}'.format(int(array_sample[6]))
+			dict_sample['contigs']    = '{:,}'.format(int(array_sample[12]))
+			dict_sample['n50']        = '{:,}'.format(int(array_sample[16]))
+			dict_sample['largest']    = '{:,}'.format(int(array_sample[13]))
+			# concatenating results
+			dict_appended = {**dict_sample, **dict_samp}
+			items.append(dict_appended)
+		print(items)
+		print("YES")
+                loader = jinja2.FileSystemLoader('template.html')
+                env = jinja2.Environment(loader=loader)
+                template = env.get_template('')
+#                for i in range(1, 11):
+#                    i = str(i)
+
+                    # dict == {}
+                    # you just don't have to quote the keys
+ #                   an_item = dict(name="rodssembler" + i, genomesize=i, contigs="here", n50="waiting", ncomplete=str(120), pctcomplete="{}%".format(str(9)),
+  #                  nduplicated=str(100), pctduplicated="{}%".format(str(15)),
+   #                 nfragmented=str(50), pctfragmented="{}%".format(str(5)),
+    #                lai=str(15.4))
+     #               items.append(an_item)
+                output_jinja2 = template.render(items=items)
+		print(output_jinja2)
+                with open(output[0], 'w') as outfile:
+                    outfile.write(output_jinja2)

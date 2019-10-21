@@ -1,0 +1,9 @@
+workdir: "."
+samples: samples.tsv
+fq: fastq/long_reads.fastq
+threads: 12
+lineage: dataset/example/
+species_augustus: "Arabidopsis thaliana"
+BUSCO_PATH: "/array/rodtheo/programas/miniconda2/bin/python /array/rodtheo/programas/busco-v3.1.0/scripts"
+LTR_RETRIEVE_PATH: "/array/rodtheo/programas/LTR_retriever/"
+NCBI_NT_DB: "/array/rodtheo/programas/ncbi-blast-2.2.31+/bin/nt" 

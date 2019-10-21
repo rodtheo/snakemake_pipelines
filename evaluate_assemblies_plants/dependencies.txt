@@ -1,0 +1,14 @@
+python3.*
+
+# install singularity aiming snakemake to work with docker images
+conda install -c conda-forge squashfs-tools 
+# set of tools required by singularity
+conda install -c conda-forge/label/gcc7 squashfs-tools 
+# export TMPDIR=/array3/rodtheo/MinION/datasets/nanocompgen/snake-example/tmp
+# to change Reapr installation, please modify files:
+# - /array/rodtheo/programas/Reapr_1.0.18/src/task_preprocess.pl: 
+	- search for pattern R CMD BATCH and change this line to "system_call("Rscript $r_script > " . $r_script . "out");"
+	- use grep 'R CMD' in folder /array/rodtheo/programas/Reapr_1.0.18/src/ and comment all other mentions to this invocation
+	- it will not output some graphs anymore but keeps the software running
+
+Make sure that run_BUSCO.py script can be found in your PATH. Remember that you must set some environment variables to be able to execute busco correctly (check busco manual).

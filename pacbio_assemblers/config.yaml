@@ -1,0 +1,6 @@
+workdir: "."
+samples: samples.tsv
+# expected genome size (suffix are allowed k/m/g)
+genome_size: 30m
+memory: 100m
+threads: 12
