@@ -14,7 +14,7 @@ Up to now we have the following specific pipelines:
 
 The following diagrams could help to choose which pipeline is more appropriate to set of datas that you have in hands.
 
-![](figs/evaluate_path.png)
+![](figs/evaluate_paths.png)
 
 
 
