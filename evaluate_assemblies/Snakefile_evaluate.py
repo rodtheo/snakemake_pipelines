@@ -8,7 +8,7 @@ from os import path
 import jinja2
 from collections import OrderedDict
 import numpy as np
-
+import os
 
 configfile: "config.yaml"
 
@@ -197,17 +197,37 @@ rule evaluate_assembly_REAPR:
 
 		#'reapr pipeline {input.genome} {input.r} evaluate_assembly/{wildcards.sample}/reapr_results && touch {output}'
 
+rule create_config_busco:
+        input:
+            'config.ini.default'
+        output:
+            'config.ini'
+        shell: 'python generate_config.py {output}'
+
+
 rule busco:
 	input:
 		genome = get_genome,
-		lineage = config["lineage"]
+		lineage = config["lineage"],
+                initf   = 'config.ini'
 	output:
 		'evaluate_assembly/{sample}/busco/BUSCO_{sample}.finished'
 	benchmark: "evaluate_assembly/benchmark/{sample}_BUSCO.log"
         params: species=config["species_augustus"]
         threads: config["threads"]
-	conda: "envs/myenv.yaml"
-        shell: 'run_BUSCO.py -i {input.genome} -o {wildcards.sample} -l {input.lineage} --cpu 10 --species {params.species} --mode genome && mv run_{wildcards.sample} evaluate_assembly/{wildcards.sample}/ && touch {output}'
+        run: 
+
+            #aug_path = os.system("which augustus")
+            aug_path = str(subprocess.Popen("which augustus", shell=True, stdout=subprocess.PIPE).stdout.read())
+            #aug_path = subprocess.check_output(["which", "augustus"])
+            #path_aug = Path(aug_path)
+            print(str(aug_path))
+            path_aug = Path('/'+'/'.join(aug_path.split("/")[1:-2]))
+
+            print("Setting augustus config path environment variable")
+
+            os.environ['AUGUSTUS_CONFIG_PATH'] = str(path_aug/"config/")
+            shell('export BUSCO_CONFIG_FILE="$PWD/config.ini"  && run_BUSCO.py -i {input.genome} -o {wildcards.sample} -l {input.lineage} --cpu 10 --species {params.species} --mode genome && mv run_{wildcards.sample} evaluate_assembly/{wildcards.sample}/ && touch {output}')
 
 rule quast:
 	params:
@@ -298,7 +318,6 @@ rule generate_table_results:
 		for t in list(zip(items, items_classes)):
 			nd = {**t[0], **t[1]}
 			res_items.append(nd)
-
 		loader = jinja2.FileSystemLoader('template.html')
 		env = jinja2.Environment(loader=loader)
 		template = env.get_template('')
@@ -308,4 +327,5 @@ rule generate_table_results:
 			outfile.write(output_jinja2)
 		# c = dict([(k,[a[k],b[k]]) for k in items])
 		c = pd.DataFrame(items)
+                print(c)
 		c.to_excel("evaluate_assembly/results.xlsx")
