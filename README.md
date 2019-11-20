@@ -6,7 +6,7 @@ Collection of Bioinformatics pipelines based on [snakemake](https://snakemake.re
 
 Up to now we have the following specific pipelines:
 
-- [Pipeline for General Evaluation of Assemblies](https://github.com/rodtheo/snakemake_pipelines/tree/master/evaluate_assemblies): the aim is to execute a collection of tools to generate metrics to evaluate _de novo_ assemblies given that we have a short read paired-end sequence file. Doesn't require reference genome, only the set of assemblies that we would like to compare;
+- [Pipeline for General Evaluation of Assemblies](https://github.com/rodtheo/snakemake_pipelines/tree/master/evaluate_assemblies): the aim is to execute a collection of tools to generate metrics to evaluate _de novo_ assemblies given that we have a short read paired-end sequence data (fq file) and an assembly to be evaluated (in fasta format). Note that it doesn't require a reference genome, only the set of assemblies that we would like to compare;
 - [Pipeline for running ONT Assemblers](https://github.com/rodtheo/snakemake_pipelines/tree/master/ont_assemblers): the aim is to execute most-recent assemblers Flye and wtdbg2 given as input a Oxford Nanopore Sequence dataset;
 - [Pipeline for Evaluation of Plant Assemblies]()
 
