@@ -202,7 +202,7 @@ rule create_config_busco:
             'config.ini.default'
         output:
             'config.ini'
-        shell: 'python generate_config.py {output}'
+        shell: 'python scripts/generate_config.py {output}'
 
 
 rule busco:
