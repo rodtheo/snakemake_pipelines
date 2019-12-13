@@ -1,0 +1,7 @@
+workdir: "."
+samples: samples_real.tsv
+fq1: fastq/read_pair_1.fq.gz
+fq2: fastq/read_pair_2.fq.gz
+threads: 3
+lineage: dataset/busco_bacteria_dataset/bacteria_odb9
+species_augustus: "None" 

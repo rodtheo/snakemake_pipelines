@@ -1,0 +1,11 @@
+sample	assembly
+flye	dataset/assembly_flye.fasta
+flye_polished	dataset/flye_final_polish.fasta
+spades_hybrid	dataset/spades_scaffolds.fasta
+unicycler_illumina_only	dataset/unicycler_illumina_assembly.fasta
+canu	dataset/canu_contigs.fasta
+unicycler_hybrid	dataset/unicycler_assembly.fasta
+unicycler_long_only	dataset/unicycler_longonly.fasta
+canu_polish	dataset/canu_final_polish.fasta
+spades_illumina_only	dataset/spades_illumina_scaffolds.fasta
+unicycler_polish	dataset/unicycler_final_polish.fasta
