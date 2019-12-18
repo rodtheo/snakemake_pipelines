@@ -34,8 +34,8 @@ def parse_busco(out_short_summary):
             # line = line.strip("\n")
             if line.startswith("#"):
                 match_db_obj = re.match(r'.+\(.+number of species\:\s(\d+),\snumber of BUSCOs\:\s(\d+)\)', line)
-                if match_db_obj:
-                    print(match_db_obj.group(1), match_db_obj.group(2))
+                #if match_db_obj:
+                #    print(match_db_obj.group(1), match_db_obj.group(2))
             else:
                 match_summary_obj = re.match(r'\s+C\:(\d+.\d+)\%\[S\:(\d+.\d)\%,D\:(\d+.\d+)\%\],F\:(\d+.\d+)\%,M:(\d+.\d+)%,n:\d+', line)
                 if match_summary_obj:
@@ -44,7 +44,7 @@ def parse_busco(out_short_summary):
                     dict_busco['pctduplicated'] = match_summary_obj.group(3)
                     dict_busco['pctfragmented'] = match_summary_obj.group(4)
                     dict_busco['pctmissing'] = match_summary_obj.group(5)
-                    print(idxline)
+                #    print(idxline)
                 elif idxline == 9:
                     match_n = re.match(r'\s+(\d+)\s+.+', line)
                     n = match_n.group(1)
@@ -265,7 +265,7 @@ rule generate_table_results:
                         dict_sample = OrderedDict()
                         dict_classes = OrderedDict()
                         dict_sample['name'] = samp
-                        print(pseudo_samp, samp)
+#                        print(pseudo_samp, samp)
                         busco_summary_file = "evaluate_assembly/{}/run_{}/short_summary_{}.txt".format(pseudo_samp, samp, samp)
                         if path.exists(busco_summary_file):
                                 dict_samp = OrderedDict(parse_busco(busco_summary_file))
@@ -309,7 +309,6 @@ rule generate_table_results:
                         dict_sample['reapr_total_errors'] = reapr_errors
                         dict_sample['reapr_fcd'] = fcd_errors
                         dict_sample['reapr_low'] = low_frag_errors
-                        print("HERE I")
                         # END - PARSING REAPR RESULTS
 #                        reapr_file = "evaluate_assembly/{}/reapr_results/05.summary.report.txt".format(pseudo_samp)
 #                        if path.exists(reapr_file):
@@ -366,7 +365,7 @@ rule generate_table_results:
                 df_sub_sorted = df_sub.sort_values('name')
                 df_sub_sorted.columns = ['Genome Size (bp)', 'Number of Contigs', 'N50', 'Largest Contig (bp)', 'BUSCO Complete Genes (%)', 'BUSCO Single-Copy Genes (%)', 'BUSCO Non-fragmented Genes (%)', 'BUSCO Found Genes (%)', 'ALE Score Normalized', 'Assembly']
                 df_sub_sorted = df_sub_sorted[['Assembly', 'Genome Size (bp)', 'Number of Contigs', 'N50', 'Largest Contig (bp)', 'BUSCO Complete Genes (%)', 'BUSCO Single-Copy Genes (%)', 'BUSCO Non-fragmented Genes (%)', 'BUSCO Found Genes (%)', 'ALE Score Normalized']]
-                k = df_sub_sorted.style.background_gradient('coolwarm', axis=0, subset=['Genome Size (bp)', 'Number of Contigs', 'N50', 'Largest Contig (bp)', 'BUSCO Complete Genes (%)', 'BUSCO Single-Copy Genes (%)', 'BUSCO Non-fragmented Genes (%)', 'BUSCO Found Genes (%)', 'ALE Score Normalized'])
+                k = df_sub_sorted.style.hide_index().background_gradient('viridis', axis=0, subset=['Genome Size (bp)', 'Number of Contigs', 'N50', 'Largest Contig (bp)', 'BUSCO Complete Genes (%)', 'BUSCO Single-Copy Genes (%)', 'BUSCO Non-fragmented Genes (%)', 'BUSCO Found Genes (%)', 'ALE Score Normalized'])
                 with open('evaluate_assembly/results_heat.html', 'w') as fheat:
                     fheat.write(k.render())
 
@@ -384,4 +383,4 @@ rule generate_table_results:
                 c = pd.DataFrame(items)
                 c.to_excel("evaluate_assembly/results.xlsx", index=False)
                 c.to_csv("evaluate_assembly/results.csv", index=False)
-                print("Success ! The results summary table has been written ! \n The results can be view in:\n \t- Excel format in file evaluate_assembly/results.xlsx \n \t- HTML format in file evaluate_assembly/results.html \n \t- CSV format in file evaluate_assembly/results.csv.")
+                print("Success ! The results summary table has been written ! \n The results can be view in:\n \t- Excel format in file evaluate_assembly/results.xlsx \n \t- HTML format in file evaluate_assembly/results.html \n \t- HTML heatmap in file evaluate_assembly/results_head.html \n \t- CSV format in file evaluate_assembly/results.csv.")
