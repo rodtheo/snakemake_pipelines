@@ -15,14 +15,26 @@ For each pipeline we have a particular conda environment and a docker image that
 To do this, we enter the folder corresponding to the pipeline (`cd evaluate_assemblies`) and create a new conda environment corresponding to our pipeline with the following command:
 
 ```
-conda env create -f envs/myenv.yaml
+conda env create -f envs/evaluate_env.yaml.yaml
 ```
 
 This will create a conda environment called `evaluate_assemblies_env`. We can check that the conda environment was created through `conda info --envs`.
 
 After this, we go to the folder `build_docker_img` and type `docker build -t rodtheo/genomics:eval_assem_ale_reapr .`. This will create an image with the remainer tools required for the execution of pipeline that could not be installed by conda. Again, we can check if the image was created listing all images with `docker images` command.
 
-Now, we activate the environment using `conda activate evaluate_assemblies_env` and them we execute the test dataset with `snakemake -s Snakefile_evaluate --cores <number of cores>` where `<number of cores>` must be replaced by a number informing the quantity of cores required by the user.
+Now, we activate the environment using `conda activate evaluate_assemblies_env` and execute the test dataset with `snakemake -s Snakefile_evaluate --cores <number of cores>` where `<number of cores>` must be replaced by a number informing the quantity of cores required by the user.
+
+## Very Quick Usage
+
+```
+# installing the required tools and environment
+conda env create -f envs/evaluate_env.yaml.yaml
+cd build_docker_img && docker build -t rodtheo/genomics:eval_assem_ale_reapr .
+# entering the installed environment
+conda activate evaluate_assemblies_env
+# executing the pipeline
+snakemake -s Snakefile_evaluate --configfile config.yaml
+```
 
 ## Output files
 
@@ -47,8 +59,8 @@ workdir: "."
 samples: samples.tsv
 fq1: fastq/reads_shortinsert_1.fastq
 fq2: fastq/reads_shortinsert_2.fastq
-threads: 8
-lineage: dataset/example/
+threads: 4
+lineage: dataset/busco_fungi_datasets/fungi_odb9
 species_augustus: aspergillus_terreus
 ```
 
@@ -64,17 +76,21 @@ So you can declare how many assemblies you want in `samples.tsv` file.
 
 The `lineage` variable stores the path to busco dataset. You must download a dataset ideal to your species being assembled searching in [busco site](https://busco.ezlab.org/) and specify the relative path in this variable. The last variable is `species_augustus` and, again, must be consistent with your data being assembled. You can check the available agusutus species in [this site](http://augustus.gobics.de/binaries/README.TXT).
 
+## Evaluating the performance of the pipeline
+
+36m25s
+
 # Output
 
-|           name          |        ale       | reapr_total_errors | reapr_fcd | reapr_low | genomesize | contigs |   n50  | largest | pctcomplete | pctsingle | pctduplicated | pctfragmented | pctmissing | ncomplete | nsingle | nduplicated | nfragmented | nmissing | ale_norm |
-|:-----------------------:|:----------------:|:------------------:|:---------:|:---------:|:----------:|:-------:|:------:|:-------:|:-----------:|:---------:|:-------------:|:-------------:|:----------:|:---------:|:-------:|:-----------:|:-----------:|:--------:|:--------:|
-| flye                    | -53188249.653201 | 5625               | 61        | 5564      | 5136373    | 35      | 230412 | 611735  | 18.3        | 17.6      | 0.7           | 31.1          | 50.6       | 27        | 26      | 1           | 46          | 75       | 0.46     |
-| flye_polished           | -36497168.441962 | 5266               | 41        | 5225      | 5109442    | 35      | 229584 | 601312  | 96.6        | 96.6      | 0.0           | 1.4           | 2.0        | 143       | 143     | 0           | 2           | 3        | 0.69     |
-| spades_hybrid           | -14769025.222694 | 6523               | 34        | 6482      | 5721015    | 84      | 342546 | 622000  | 98.6        | 98.6      | 0.0           | 0.0           | 1.4        | 146       | 146     | 0           | 0           | 2        | 1.00     |
-| unicycler_illumina_only | -15743347.597692 | 6296               | 26        | 6270      | 5637716    | 113     | 150995 | 323469  | 98.6        | 98.6      | 0.0           | 0.0           | 1.4        | 146       | 146     | 0           | 0           | 2        | 0.99     |
-| canu                    | -55660817.201297 | 4991               | 52        | 4939      | 4639709    | 65      | 103098 | 451020  | 17.6        | 17.6      | 0.0           | 33.1          | 49.3       | 26        | 26      | 0           | 49          | 73       | 0.42     |
-| unicycler_hybrid        | -15411554.523661 | 6469               | 33        | 6436      | 5695678    | 72      | 364058 | 654987  | 98.6        | 98.6      | 0.0           | 0.0           | 1.4        | 146       | 146     | 0           | 0           | 2        | 0.99     |
-| unicycler_long_only     | -85829499.260974 | 1704               | 15        | 1689      | 1648245    | 38      | 49495  | 91409   | 15.5        | 15.5      | 0.0           | 10.8          | 73.7       | 23        | 23      | 0           | 16          | 109      | 0.00     |
-| canu_polish             | -42542598.210604 | 4723               | 36        | 4687      | 4640833    | 65      | 102018 | 452765  | 86.5        | 86.5      | 0.0           | 0.0           | 13.5       | 128       | 128     | 0           | 0           | 20       | 0.61     |
-| spades_illumina_only    | -15236766.76177  | 6386               | 28        | 6357      | 5688198    | 121     | 164348 | 312426  | 98.6        | 98.6      | 0.0           | 0.0           | 1.4        | 146       | 146     | 0           | 0           | 2        | 0.99     |
-| unicycler_polish        | -81251206.905238 | 1631               | 12        | 1619      | 1641339    | 38      | 49548  | 91567   | 41.9        | 41.9      | 0.0           | 2.7           | 55.4       | 62        | 62      | 0           | 4           | 82       | 0.06     |
+| Assembly                | ALE score (neglog) | REAPR erros | REAPR fcd | REAPR low | Assembly length | contigs | N50    | Largest contig | BUSCO complete (%) | BUSCO single (%) | BUSCO duplicated (%) | BUSCO fragmented (%) | BUSCO missing (%) | BUSCO complete | BUSCO single | BUSCO duplicated | BUSCO fragmented | BUSCO missing | ALE normalized |
+|-------------------------|--------------------|-------------|-----------|-----------|-----------------|---------|--------|----------------|--------------------|------------------|----------------------|----------------------|-------------------|----------------|--------------|------------------|------------------|---------------|----------------|
+| flye                    | -53188249.653201   | 5625        | 61        | 5564      | 5136373         | 35      | 230412 | 611735         | 18.3               | 17.6             | 0.7                  | 31.1                 | 50.6              | 27             | 26           | 1                | 46               | 75            | 0.46           |
+| flye_polished           | -36497168.441962   | 5266        | 41        | 5225      | 5109442         | 35      | 229584 | 601312         | 96.6               | 96.6             | 0.0                  | 1.4                  | 2.0               | 143            | 143          | 0                | 2                | 3             | 0.69           |
+| spades_hybrid           | -14769025.222694   | 6523        | 34        | 6482      | 5721015         | 84      | 342546 | 622000         | 98.6               | 98.6             | 0.0                  | 0.0                  | 1.4               | 146            | 146          | 0                | 0                | 2             | 1.00           |
+| unicycler_illumina_only | -15743347.597692   | 6296        | 26        | 6270      | 5637716         | 113     | 150995 | 323469         | 98.6               | 98.6             | 0.0                  | 0.0                  | 1.4               | 146            | 146          | 0                | 0                | 2             | 0.99           |
+| canu                    | -55660817.201297   | 4991        | 52        | 4939      | 4639709         | 65      | 103098 | 451020         | 17.6               | 17.6             | 0.0                  | 33.1                 | 49.3              | 26             | 26           | 0                | 49               | 73            | 0.42           |
+| unicycler_hybrid        | -15411554.523661   | 6469        | 33        | 6436      | 5695678         | 72      | 364058 | 654987         | 98.6               | 98.6             | 0.0                  | 0.0                  | 1.4               | 146            | 146          | 0                | 0                | 2             | 0.99           |
+| unicycler_long_only     | -85829499.260974   | 1704        | 15        | 1689      | 1648245         | 38      | 49495  | 91409          | 15.5               | 15.5             | 0.0                  | 10.8                 | 73.7              | 23             | 23           | 0                | 16               | 109           | 0.00           |
+| canu_polish             | -42542598.210604   | 4723        | 36        | 4687      | 4640833         | 65      | 102018 | 452765         | 86.5               | 86.5             | 0.0                  | 0.0                  | 13.5              | 128            | 128          | 0                | 0                | 20            | 0.61           |
+| spades_illumina_only    | -15236766.76177    | 6386        | 28        | 6357      | 5688198         | 121     | 164348 | 312426         | 98.6               | 98.6             | 0.0                  | 0.0                  | 1.4               | 146            | 146          | 0                | 0                | 2             | 0.99           |
+| unicycler_polish        | -81251206.905238   | 1631        | 12        | 1619      | 1641339         | 38      | 49548  | 91567          | 41.9               | 41.9             | 0.0                  | 2.7                  | 55.4              | 62             | 62           | 0                | 4                | 82            | 0.06           |
