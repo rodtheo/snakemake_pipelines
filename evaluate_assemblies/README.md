@@ -32,7 +32,7 @@ conda env create -f envs/evaluate_env.yaml.yaml
 cd build_docker_img && docker build -t rodtheo/genomics:eval_assem_ale_reapr .
 # entering the installed environment
 conda activate evaluate_assemblies_env
-# executing the pipeline
+# executing the pipeline with the test dataset
 snakemake -s Snakefile_evaluate --configfile config.yaml
 ```
 
