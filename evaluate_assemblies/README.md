@@ -94,3 +94,227 @@ The `lineage` variable stores the path to busco dataset. You must download a dat
 | canu_polish             | -42542598.210604   | 4723        | 36        | 4687      | 4640833         | 65      | 102018 | 452765         | 86.5               | 86.5             | 0.0                  | 0.0                  | 13.5              | 128            | 128          | 0                | 0                | 20            | 0.61           |
 | spades_illumina_only    | -15236766.76177    | 6386        | 28        | 6357      | 5688198         | 121     | 164348 | 312426         | 98.6               | 98.6             | 0.0                  | 0.0                  | 1.4               | 146            | 146          | 0                | 0                | 2             | 0.99           |
 | unicycler_polish        | -81251206.905238   | 1631        | 12        | 1619      | 1641339         | 38      | 49548  | 91567          | 41.9               | 41.9             | 0.0                  | 2.7                  | 55.4              | 62             | 62           | 0                | 4                | 82            | 0.06           |
+
+
+## Results HTML
+
+<style type="text/css">
+.tg  {border-collapse:collapse;border-spacing:0;border-color:#93a1a1;}
+.tg td{font-family:Arial, sans-serif;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;border-color:#93a1a1;color:#002b36;background-color:#fdf6e3;}
+.tg th{font-family:Arial, sans-serif;font-size:14px;font-weight:normal;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;border-color:#93a1a1;color:#fdf6e3;background-color:#657b83;}
+.tg .tg-lboi{border-color:inherit;text-align:left;vertical-align:middle}
+.tg .tg-0pky{border-color:inherit;text-align:left;vertical-align:top}
+.tg .mark{background-color:#FFFF00;}
+thead {
+      font-style: italic;
+      }
+</style>
+
+<table class="tg">
+    <thead>
+  <tr>
+    <th class="tg-lboi" rowspan="2">Assembly</th>
+    <th class="tg-lboi" rowspan="2">Length</th>
+    <th class="tg-lboi" rowspan="2">Number of contigs</th>
+    <th class="tg-lboi" rowspan="2">Largest contig (bp)</th>
+    <th class="tg-lboi" rowspan="2">Contig N50</th>
+    <th class="tg-lboi" colspan="2">Complete genes</th>
+    <th class="tg-lboi" colspan="2">Duplicated genes</th>
+    <th class="tg-0pky" colspan="2">Fragmented genes</th>
+    <th class="tg-0pky" colspan="2">Missing genes</th>
+    <th class="tg-0pky" rowspan="2">ALE score (log)</th>
+    <th class="tg-0pky" rowspan="2">REAPR errors</th>
+  </tr>
+  <tr>
+    <th class="tg-lboi">Number</th>
+    <th class="tg-lboi">Pct</th>
+    <th class="tg-lboi">Number</th>
+    <th class="tg-0pky">Pct</th>
+    <th class="tg-0pky">Number</th>
+    <th class="tg-0pky">Pct</th>
+    <th class="tg-0pky">Number</th>
+    <th class="tg-0pky">Pct</th>
+  </tr>
+  </thead>
+  
+  <tr>
+    <td class="tg-lboi">flye</td>
+    <td class="tg-lboi">5136373</td>
+    <td class="tg-lboi">35</td>
+    <td class="tg-lboi">611735</td>
+    <td class="tg-lboi">230412</td>
+    <td class="tg-lboi">27</td>
+    <td class="tg-lboi">18.3%</td>
+    <td class="tg-lboi">1</td>
+    <td class="tg-lboi">0.7%</td>
+    <td class="tg-lboi">46</td>
+    <td class="tg-lboi">31.1%</td>
+    <td class="tg-lboi">75</td>
+    <td class="tg-lboi">50.6%</td>
+    <td class="tg-lboi">-53188249.653201</td>
+    <td class=""></td>
+  </tr>
+  
+  <tr>
+    <td class="tg-lboi">flye_polished</td>
+    <td class="tg-lboi">5109442</td>
+    <td class="tg-lboi">35</td>
+    <td class="tg-lboi">601312</td>
+    <td class="tg-lboi">229584</td>
+    <td class="tg-lboi">143</td>
+    <td class="tg-lboi">96.6%</td>
+    <td class="tg-lboi">0</td>
+    <td class="tg-lboi">0.0%</td>
+    <td class="tg-lboi">2</td>
+    <td class="tg-lboi">1.4%</td>
+    <td class="tg-lboi">3</td>
+    <td class="tg-lboi">2.0%</td>
+    <td class="tg-lboi">-36497168.441962</td>
+    <td class=""></td>
+  </tr>
+  
+  <tr>
+    <td class="tg-lboi">spades_hybrid</td>
+    <td class="tg-lboi">5721015</td>
+    <td class="tg-lboi">84</td>
+    <td class="tg-lboi">622000</td>
+    <td class="tg-lboi">342546</td>
+    <td class="tg-lboi">146</td>
+    <td class="tg-lboi">98.6%</td>
+    <td class="tg-lboi">0</td>
+    <td class="tg-lboi">0.0%</td>
+    <td class="tg-lboi">0</td>
+    <td class="tg-lboi">0.0%</td>
+    <td class="tg-lboi">2</td>
+    <td class="tg-lboi">1.4%</td>
+    <td class="tg-lboi">-14769025.222694</td>
+    <td class=""></td>
+  </tr>
+  
+  <tr>
+    <td class="tg-lboi">unicycler_illumina_only</td>
+    <td class="tg-lboi">5637716</td>
+    <td class="tg-lboi">113</td>
+    <td class="tg-lboi">323469</td>
+    <td class="tg-lboi">150995</td>
+    <td class="tg-lboi">146</td>
+    <td class="tg-lboi">98.6%</td>
+    <td class="tg-lboi">0</td>
+    <td class="tg-lboi">0.0%</td>
+    <td class="tg-lboi">0</td>
+    <td class="tg-lboi">0.0%</td>
+    <td class="tg-lboi">2</td>
+    <td class="tg-lboi">1.4%</td>
+    <td class="tg-lboi">-15743347.597692</td>
+    <td class=""></td>
+  </tr>
+  
+  <tr>
+    <td class="tg-lboi">canu</td>
+    <td class="tg-lboi">4639709</td>
+    <td class="tg-lboi">65</td>
+    <td class="tg-lboi">451020</td>
+    <td class="tg-lboi">103098</td>
+    <td class="tg-lboi">26</td>
+    <td class="tg-lboi">17.6%</td>
+    <td class="tg-lboi">0</td>
+    <td class="tg-lboi">0.0%</td>
+    <td class="tg-lboi">49</td>
+    <td class="tg-lboi">33.1%</td>
+    <td class="tg-lboi">73</td>
+    <td class="tg-lboi">49.3%</td>
+    <td class="tg-lboi">-55660817.201297</td>
+    <td class=""></td>
+  </tr>
+  
+  <tr>
+    <td class="tg-lboi">unicycler_hybrid</td>
+    <td class="tg-lboi">5695678</td>
+    <td class="tg-lboi">72</td>
+    <td class="tg-lboi">654987</td>
+    <td class="tg-lboi">364058</td>
+    <td class="tg-lboi">146</td>
+    <td class="tg-lboi">98.6%</td>
+    <td class="tg-lboi">0</td>
+    <td class="tg-lboi">0.0%</td>
+    <td class="tg-lboi">0</td>
+    <td class="tg-lboi">0.0%</td>
+    <td class="tg-lboi">2</td>
+    <td class="tg-lboi">1.4%</td>
+    <td class="tg-lboi">-15411554.523661</td>
+    <td class=""></td>
+  </tr>
+  
+  <tr>
+    <td class="tg-lboi">unicycler_long_only</td>
+    <td class="tg-lboi">1648245</td>
+    <td class="tg-lboi">38</td>
+    <td class="tg-lboi">91409</td>
+    <td class="tg-lboi">49495</td>
+    <td class="tg-lboi">23</td>
+    <td class="tg-lboi">15.5%</td>
+    <td class="tg-lboi">0</td>
+    <td class="tg-lboi">0.0%</td>
+    <td class="tg-lboi">16</td>
+    <td class="tg-lboi">10.8%</td>
+    <td class="tg-lboi">109</td>
+    <td class="tg-lboi">73.7%</td>
+    <td class="tg-lboi">-85829499.260974</td>
+    <td class=""></td>
+  </tr>
+  
+  <tr>
+    <td class="tg-lboi">canu_polish</td>
+    <td class="tg-lboi">4640833</td>
+    <td class="tg-lboi">65</td>
+    <td class="tg-lboi">452765</td>
+    <td class="tg-lboi">102018</td>
+    <td class="tg-lboi">128</td>
+    <td class="tg-lboi">86.5%</td>
+    <td class="tg-lboi">0</td>
+    <td class="tg-lboi">0.0%</td>
+    <td class="tg-lboi">0</td>
+    <td class="tg-lboi">0.0%</td>
+    <td class="tg-lboi">20</td>
+    <td class="tg-lboi">13.5%</td>
+    <td class="tg-lboi">-42542598.210604</td>
+    <td class=""></td>
+  </tr>
+  
+  <tr>
+    <td class="tg-lboi">spades_illumina_only</td>
+    <td class="tg-lboi">5688198</td>
+    <td class="tg-lboi">121</td>
+    <td class="tg-lboi">312426</td>
+    <td class="tg-lboi">164348</td>
+    <td class="tg-lboi">146</td>
+    <td class="tg-lboi">98.6%</td>
+    <td class="tg-lboi">0</td>
+    <td class="tg-lboi">0.0%</td>
+    <td class="tg-lboi">0</td>
+    <td class="tg-lboi">0.0%</td>
+    <td class="tg-lboi">2</td>
+    <td class="tg-lboi">1.4%</td>
+    <td class="tg-lboi">-15236766.76177</td>
+    <td class=""></td>
+  </tr>
+  
+  <tr>
+    <td class="tg-lboi">unicycler_polish</td>
+    <td class="tg-lboi">1641339</td>
+    <td class="tg-lboi">38</td>
+    <td class="tg-lboi">91567</td>
+    <td class="tg-lboi">49548</td>
+    <td class="tg-lboi">62</td>
+    <td class="tg-lboi">41.9%</td>
+    <td class="tg-lboi">0</td>
+    <td class="tg-lboi">0.0%</td>
+    <td class="tg-lboi">4</td>
+    <td class="tg-lboi">2.7%</td>
+    <td class="tg-lboi">82</td>
+    <td class="tg-lboi">55.4%</td>
+    <td class="tg-lboi">-81251206.905238</td>
+    <td class=""></td>
+  </tr>
+  
+</table>
