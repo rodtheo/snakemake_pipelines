@@ -2,6 +2,6 @@ workdir: "."
 samples: samples.tsv
 fq1: fastq/reads_shortinsert_1.fastq
 fq2: fastq/reads_shortinsert_2.fastq
-threads: 8
-lineage: dataset/example/
+threads: 4
+lineage: dataset/busco_fungi_datasets/fungi_odb9
 species_augustus: aspergillus_terreus

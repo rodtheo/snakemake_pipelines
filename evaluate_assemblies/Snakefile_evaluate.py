@@ -202,8 +202,19 @@ rule create_config_busco:
         input:
             'config.ini.default'
         output:
-            'config.ini'
-        shell: 'python scripts/generate_config.py {output}'
+            config='config.ini', lineage = config["lineage"]
+        run:
+            shell('python scripts/generate_config.py {output.config}')
+            pathdb = Path(output.lineage)
+            print(pathdb)
+            if not pathdb.exists():
+                db_name = str(pathdb.name)
+                print(db_name)
+                shell('wget https://busco-archive.ezlab.org/v2/datasets/{}.tar.gz -O {}.tar.gz'.format(db_name, str(pathdb)))
+                print('PARENT=',  pathdb.parent)
+                shell('tar xzf {}.tar.gz -C {}'.format(str(pathdb), str(pathdb.parent)))
+
+#        shell: 'python scripts/generate_config.py {output.config} && wget {dataset/busco_bacteria_dataset/bacteria_odb9}'
 
 
 rule busco:
@@ -228,13 +239,21 @@ rule busco:
             print("Setting augustus config path environment variable")
 
             os.environ['AUGUSTUS_CONFIG_PATH'] = str(path_aug/"config/")
-            print("AAAAAQUI", config["species_augustus"])
             if (config["species_augustus"] == "None"):
-                print("AAAAAQUI")
-                shell("mkdir run_{wildcards.sample} && docker run -it --rm -v $(pwd):/home/working -w /home/working chrishah/busco-docker run_BUSCO.py -i {input.genome} -o {wildcards.sample} -l {input.lineage} --mode genome --force && mv run_{wildcards.sample} evaluate_assembly/{wildcards.sample}/ && touch {output}")
+                p = Path('evaluate_assembly/{}/'.format(wildcards.sample))
+                if not p.exists():
+                    shell("mkdir run_{wildcards.sample} && docker run -it --rm -v $(pwd):/home/working -w /home/working chrishah/busco-docker run_BUSCO.py -i {input.genome} -o {wildcards.sample} -l {input.lineage} --mode genome --force && mv run_{wildcards.sample} evaluate_assembly/{wildcards.sample}/ && touch {output}")
+                else:
+                    shell('touch {output}')
 #                shell('export BUSCO_CONFIG_FILE="$PWD/config.ini"  && run_BUSCO.py -i {input.genome} -o {wildcards.sample} -l {input.lineage} --cpu 1 --mode genome && mv run_{wildcards.sample} evaluate_assembly/{wildcards.sample}/ && touch {output}')
             else:
-                shell('export BUSCO_CONFIG_FILE="$PWD/config.ini"  && run_BUSCO.py -i {input.genome} -o {wildcards.sample} -l {input.lineage} --cpu 1 --species {params.species} --mode genome && mv run_{wildcards.sample} evaluate_assembly/{wildcards.sample}/ && touch {output}')
+                shell('export BUSCO_CONFIG_FILE="$PWD/config.ini"  && run_BUSCO.py -f -i {input.genome} -o {wildcards.sample} -l {input.lineage} --cpu 1 --species {params.species} --mode genome')
+                p = Path('evaluate_assembly/{}/'.format(wildcards.sample))
+                if not p.exists():
+                    shell('mv run_{wildcards.sample} evaluate_assembly/{wildcards.sample}/ && touch {output}')
+                else:
+                    shell('touch {output}')
+
 
 rule quast:
         params:
@@ -343,7 +362,9 @@ rule generate_table_results:
                 ale_scores = np.array(ale_scores)
                 for it in items:
                     # min-max normalization
-                    it['ale_norm'] = '{:.2f}'.format(((it['ale']-np.min(ale_scores))/(np.max(ale_scores)-np.min(ale_scores))))
+                    
+                    it['ale_norm'] = '{:.2f}'.format(((it['ale']-np.nanmin(ale_scores))/(np.nanmax(ale_scores)-np.nanmin(ale_scores))))
+                   # print(it['ale'])
                 #myList = [list(col) for col in zip(*[d.values() for d in items])]
                 #myList_argmax = np.argmax(myList, axis=1)
                 #print("argmax",myList_argmax)
@@ -356,16 +377,19 @@ rule generate_table_results:
                 res_items = []
                 df = pd.DataFrame(items)
                 df_unnameA = df.drop('name', axis=1)
+                df_unnameA = df_unnameA.drop('ale_norm', axis=1)
+                print(df_unnameA)
                 df_unname = df_unnameA.apply(pd.to_numeric)
+                print("HERE")
                 df_unname['pct_nonduplicated'] = 100. - df_unname['pctduplicated']
                 df_unname['pct_integral'] = 100. - df_unname['pctfragmented']
                 df_unname['pct_found'] = 100. - df_unname['pctmissing']
-                df_sub = df_unname[['genomesize', 'contigs', 'n50', 'largest', 'pctcomplete', 'pct_nonduplicated', 'pct_integral', 'pct_found', 'ale_norm']]
+                df_sub = df_unname[['genomesize', 'contigs', 'n50', 'largest', 'pctcomplete', 'pct_nonduplicated', 'pct_integral', 'pct_found']]
                 df_sub['name'] = df['name']
                 df_sub_sorted = df_sub.sort_values('name')
-                df_sub_sorted.columns = ['Genome Size (bp)', 'Number of Contigs', 'N50', 'Largest Contig (bp)', 'BUSCO Complete Genes (%)', 'BUSCO Single-Copy Genes (%)', 'BUSCO Non-fragmented Genes (%)', 'BUSCO Found Genes (%)', 'ALE Score Normalized', 'Assembly']
-                df_sub_sorted = df_sub_sorted[['Assembly', 'Genome Size (bp)', 'Number of Contigs', 'N50', 'Largest Contig (bp)', 'BUSCO Complete Genes (%)', 'BUSCO Single-Copy Genes (%)', 'BUSCO Non-fragmented Genes (%)', 'BUSCO Found Genes (%)', 'ALE Score Normalized']]
-                k = df_sub_sorted.style.hide_index().background_gradient('viridis', axis=0, subset=['Genome Size (bp)', 'Number of Contigs', 'N50', 'Largest Contig (bp)', 'BUSCO Complete Genes (%)', 'BUSCO Single-Copy Genes (%)', 'BUSCO Non-fragmented Genes (%)', 'BUSCO Found Genes (%)', 'ALE Score Normalized'])
+                df_sub_sorted.columns = ['Genome Size (bp)', 'Number of Contigs', 'N50', 'Largest Contig (bp)', 'BUSCO Complete Genes (%)', 'BUSCO Single-Copy Genes (%)', 'BUSCO Non-fragmented Genes (%)', 'BUSCO Found Genes (%)', 'Assembly']
+                df_sub_sorted = df_sub_sorted[['Assembly', 'Genome Size (bp)', 'Number of Contigs', 'N50', 'Largest Contig (bp)', 'BUSCO Complete Genes (%)', 'BUSCO Single-Copy Genes (%)', 'BUSCO Non-fragmented Genes (%)', 'BUSCO Found Genes (%)']]
+                k = df_sub_sorted.style.hide_index().background_gradient('viridis', axis=0, subset=['Genome Size (bp)', 'Number of Contigs', 'N50', 'Largest Contig (bp)', 'BUSCO Complete Genes (%)', 'BUSCO Single-Copy Genes (%)', 'BUSCO Non-fragmented Genes (%)', 'BUSCO Found Genes (%)'])
                 with open('evaluate_assembly/results_heat.html', 'w') as fheat:
                     fheat.write(k.render())
 
@@ -381,6 +405,7 @@ rule generate_table_results:
                         outfile.write(output_jinja2)
                 # c = dict([(k,[a[k],b[k]]) for k in items])
                 c = pd.DataFrame(items)
+                c.columns = ['Assembly', 'ALE score (neglog)', 'REAPR erros', 'REAPR fcd', 'REAPR low', 'Assembly length', 'contigs', 'N50', 'Largest contig', 'BUSCO complete (%)', 'BUSCO single (%)', 'BUSCO duplicated (%)', 'BUSCO fragmented (%)', 'BUSCO missing (%)', 'BUSCO complete', 'BUSCO single', 'BUSCO duplicated', 'BUSCO fragmented', 'BUSCO missing', 'ALE normalized']
                 c.to_excel("evaluate_assembly/results.xlsx", index=False)
                 c.to_csv("evaluate_assembly/results.csv", index=False)
-                print("Success ! The results summary table has been written ! \n The results can be view in:\n \t- Excel format in file evaluate_assembly/results.xlsx \n \t- HTML format in file evaluate_assembly/results.html \n \t- HTML heatmap in file evaluate_assembly/results_head.html \n \t- CSV format in file evaluate_assembly/results.csv.")
+                print("Success ! The results summary table has been written ! \n The results can be view in:\n \t- Excel format in file evaluate_assembly/results.xlsx \n \t- HTML format in file evaluate_assembly/results.html \n \t- HTML heatmap in file evaluate_assembly/results_head.html \n \t- CSV format in file evaluate_assembly/results.csv")
