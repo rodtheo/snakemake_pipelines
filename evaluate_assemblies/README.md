@@ -15,8 +15,15 @@ For each pipeline we have a particular conda environment and a docker image that
 To do this, we enter the folder corresponding to the pipeline (`cd evaluate_assemblies`) and create a new conda environment corresponding to our pipeline with the following command:
 
 ```
-conda env create -f envs/evaluate_env.yaml.yaml
+conda env create -f envs/evaluate_env.yaml
 ```
+
+or use mamba as conda substitution (much faster)
+
+```
+mamba env create -f envs/evaluate_env.yaml
+```
+
 
 This will create a conda environment called `evaluate_assemblies_env`. We can check that the conda environment was created through `conda info --envs`.
 
